@@ -82,6 +82,9 @@ class SciNN:
                     for i in range(len(self.h[l])):
                         self.h[l][i] = self.actFn(
                             np.matmul(self.W[l-1][i], np.concatenate([self.h[l-1], self.h_prev[l]])))
+                        # remove negative voltage
+                        if self.h[l][i] < 0:
+                            self.h[l][i] = 0
 
     def _propagateBackward(self, target_vector):
         if len(target_vector) != len(self.h[-1]):
