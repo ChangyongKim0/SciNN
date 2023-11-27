@@ -28,15 +28,25 @@ class SciNN:
             [random.random()*self.initial_range for _ in range(layer_length)])
         self.layer_depth += 1
 
-    def initializeWeight(self):
+    def _deleteDiagonal(self):
+        for W_l in self.W:
+            for i in range(len(W_l)):
+                for j in range(len(W_l[i])-len(W_l), len(W_l[i])):
+                    W_l[j-(len(W_l[i])-len(W_l))][j] = 0
+
+    def initializeWeight(self, sparsity=0.5):
         for W_l in self.W:
             for W_l_i in W_l:
                 for j in range(len(W_l_i)):
-                    W_l_i[j] = random.randrange(
-                        0, 2)*(random.random()*2*self.initial_range-self.initial_range)
+                    if random.random() < sparsity:
+                        W_l_i[j] = random.random()*2*self.initial_range - \
+                            self.initial_range
+                    else:
+                        W_l_i[j] = 0
         for W_Lplus1_i in self.W[self.layer_depth]:
             for j in range(len(W_Lplus1_i)-len(self.W[self.layer_depth]), len(W_Lplus1_i)):
                 W_Lplus1_i[j] = 0
+        self._deleteDiagonal()
 
     def setActivationFunction(self, fn_type):
         if fn_type == "tanh":
@@ -106,24 +116,25 @@ class SciNN:
         for W_Lplus1_i in self.W[self.layer_depth]:
             for j in range(len(W_Lplus1_i)-len(self.W[self.layer_depth]), len(W_Lplus1_i)):
                 W_Lplus1_i[j] = 0
+        self._deleteDiagonal()
 
     def _makeDataFrame(self, h, W, h_prev, W_prev):
         temp_data = [{'from': '', 'to': '', 'weight': None}]
         for l in range(len(h)):
             for i in range(len(h[l])):
-                temp_data.append({'from': f'{
-                                 l}-{i}', 'to': '', 'weight': self.initial_range/2, 'strength': h_prev[l][i]})
-                temp_data.append({'from': '', 'to': f'{
-                                 l}-{i}', 'weight': self.initial_range/2, 'strength': h[l][i]})
+                temp_data.append(
+                    {'from': f'{l}-{i}', 'to': '', 'weight': self.initial_range/2, 'strength': h_prev[l][i]})
+                temp_data.append(
+                    {'from': '', 'to': f'{l}-{i}', 'weight': self.initial_range/2, 'strength': h[l][i]})
         for l in range(len(W)):
             for i in range(len(W[l])):
                 for j in range(len(W[l][i])):
                     if j >= len(W[l][i])-len(W[l]):
-                        temp_data.append({'from': f'{l+1}-{j-(len(W[l][i])-len(W[l]))}', 'to': f'{l+1}-{
-                                         i}', 'weight': abs(W[l][i][j]), 'strength': W[l][i][j]*h_prev[l+1][i]})
+                        temp_data.append({'from': f'{l+1}-{j-(len(W[l][i])-len(W[l]))}', 'to': f'{l+1}-{i}', 'weight': abs(
+                            W[l][i][j]), 'strength': W[l][i][j]*h_prev[l+1][j-(len(W[l][i])-len(W[l]))]})
                     else:
                         temp_data.append({'from': f'{l}-{j}', 'to': f'{l+1}-{i}', 'weight': abs(
-                            W[l][i][j]), 'strength': W[l][i][j]*h_prev[l+1][i]})
+                            W[l][i][j]), 'strength': W[l][i][j]*h_prev[l][j]})
         return pd.DataFrame(temp_data)
 
     def drawHeatmap(self):
