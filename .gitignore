@@ -2,5 +2,8 @@
 
 # data
 /__pycache__
-/output
+/output/*
+/data/*
 
+/논문
+/기타자료
