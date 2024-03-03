@@ -19,6 +19,7 @@ class SciNN:
         self.h_prev = [[0]*input_length]
         self.W_prev = []
         self.initial_range = .5
+        self.max_range = 1
         self.lr = 0.05
         self.layer_depth = -1
 
@@ -88,11 +89,11 @@ class SciNN:
         for l in range(len(h)):
             for i in range(len(h[l])):
                 temp_data.append(
-                    {'from': f'{l}-{i}', 'to': 't-1', 'weight': self.initial_range/2, 'strength': h_prev[l][i]})
+                    {'from': f'{l}-{i}', 'to': 't-1', 'weight':  self.max_range/2, 'strength': h_prev[l][i]})
                 temp_data.append(
-                    {'from': f'{l}-{i}', 'to': 't', 'weight': self.initial_range/2, 'strength': h[l][i]})
+                    {'from': f'{l}-{i}', 'to': 't', 'weight':  self.max_range/2, 'strength': h[l][i]})
                 temp_data.append(
-                    {'from': 't', 'to': f'{l}-{i}', 'weight': self.initial_range/2, 'strength': h[l][i]})
+                    {'from': 't', 'to': f'{l}-{i}', 'weight':  self.max_range/2, 'strength': h[l][i]})
         for l in range(len(W)):
             for i in range(len(W[l])):
                 for j in range(len(W[l][i])):
@@ -109,7 +110,7 @@ class SciNN:
         data = self._makeDataFrame(self.h, self.W, self.h_prev, self.W_prev)
         g = sns.relplot(x="from", y="to",
                         hue="strength", size="weight",
-                        hue_norm=(-self.initial_range, self.initial_range), size_norm=(0, self.initial_range),
+                        hue_norm=(-1, self.max_range), size_norm=(0, self.max_range),
                         palette="coolwarm",
                         sizes=(0, 3000/(sum([len(self.h[l])
                                for l in range(len(self.h))]))),
