@@ -167,7 +167,7 @@ class SciNN_G:
         g.ax.invert_yaxis()
         ghost = g.ax.scatter([], [], c=[], vmin=-self.max_range,
                              vmax=self.max_range, cmap="coolwarm")
-        g.fig.colorbar(ghost)
+        g.figure.colorbar(ghost)
         return g
 
     def saveHeatmap(self, file_name):
