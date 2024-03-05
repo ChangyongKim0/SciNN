@@ -13,8 +13,8 @@ class SciNN_G_RNN(sg.SciNN_G):
         self.epsilon = .01
         self.lr = 0.05
         self.theta = [[0]*n_v for n_v in self.n]
-        self.actFn = math.tanh
-        self.actFnDer = lambda y: 1 - y**2
+        self.actFn = lambda x: math.tanh(x) if x > 0 else -0.05*x
+        self.actFnDer = lambda y: 1 - y**2 if y > 0 else -0.05
         self.feedSelf = lambda output: output
         # objects below will be used in BP only
         # (i)-th index means the value at time (t-i)
@@ -105,6 +105,9 @@ class SciNN_G_RNN(sg.SciNN_G):
                                     self.hs[self.d[b]+1][a][j] * \
                                     self.actFnDer(
                                         self.hs[self.d[b]][b][i])*dL_dh[b][i]
+                                if self.Ws[self.d[b]][b][a][i][j] != 0 and self.h_state[a][j] == 0:
+                                    self.h_state[a][j] = 1 if self.Ws[self.d[b]
+                                                                      ][b][a][i][j] > 0 else -1
                                 if self.Ws[self.d[b]][b][a][i][j] * self.h_state[a][j] < 0:
                                     self.Ws[self.d[b]][b][a][i][j] = 0
                                 if self.Ws[self.d[b]][b][a][i][j] * self.h_state[a][j] >= self.max_tanh_value:
@@ -140,13 +143,10 @@ class SciNN_G_RNN(sg.SciNN_G):
                     # tilde_w_b = sum(
                     #     [np.matmul(self.W_prev[b][a], [1]*len(self.h_prev[a])) for a in pre_of_b])
                     for i in range(len(self.h[b])):
-                        self.h[b][i] = sum([sum([max(0, math.tanh(
-                            self.h_prev[a][j]*math.tanh(self.W_prev[b][a][i][j]))) for j in range(self.n[a])]) for a in pre_of_b])
-                        try:
-                            self.theta[b][i] = (
-                                1-self.delta)*self.theta[b][i]+self.delta*math.pow(v_b[i], 3)
-                        except:
-                            print(self.theta[b][i], v_b[i])
+                        self.h[b][i] = max(0, math.tanh(sum([sum([self.h_prev[a][j]*math.tanh(
+                            self.W_prev[b][a][i][j]) for j in range(self.n[a])]) for a in pre_of_b])))
+                        self.theta[b][i] = (
+                            1-self.delta)*self.theta[b][i]+self.delta*math.pow(v_b[i], 3)
                         for a in pre_of_b:
                             phi = v_b[i] * (v_b[i] - self.theta[b][i])
                             for j in range(len(self.h[a])):
