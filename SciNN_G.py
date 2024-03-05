@@ -32,7 +32,7 @@ class SciNN_G:
         self.h_prev = [[0]*n_v for n_v in self.n]
         self.W_prev = [[[[0]*n_a
                          for _ in range(n_b)] for n_a in self.n] for n_b in self.n]
-        self.rho = 0.5
+        self.rho = 0.8
         self.d = [self._getGraphDistance(
             self.V, self.E, v, self.o) for v in self.V]
         self.layer_depth = self._getGraphMinDepth(self.V, self.d)
@@ -178,7 +178,7 @@ class SciNN_G:
 
     def saveCurrent(self, file_name):
         to_save = {"h": self.h, "W": self.W, "h_prev": self.h_prev,
-                   "W_prev": self.W_prev}
+                   "W_prev": self.W_prev, "h_state": self.h_state}
         with open("data/"+file_name+".json", "w") as f:
             json.dump(to_save, f)
 
@@ -187,6 +187,7 @@ class SciNN_G:
             to_load = json.load(f)
         self.h, self.W, self.h_prev, self.W_prev = to_load[
             "h"], to_load["W"], to_load["h_prev"], to_load["W_prev"]
+        self.h_state = to_load["h_state"]
 
 
 # a = SciNN(3)
